@@ -1,3 +1,6 @@
+//Nero, Custom weapon support
+#include "sentryMK2addon"
+
 /** Sentry Mk2
 *
 * by Giegue
@@ -21,6 +24,9 @@
 * You can also skip the "1" to spawn enemy sentries, which will create
 * sentries with random weapons.
 */
+//Nero, Custom weapon support
+namespace SentryMK2
+{
 
 // Sentry spawnflags
 const int SF_SENTRY_STARTDAMAGE = ( 1 << 5 ); // If sentry is inactive, auto-start if it takes damage
@@ -447,6 +453,11 @@ class CSentryMK2 : ScriptBaseMonsterEntity
 				case W_DESERT_EAGLE: weaponClassname = "weapon_eagle"; break;
 				case W_SHOCKRIFLE: weaponClassname = "weapon_shockrifle"; break;
 				case W_DISPLACER: weaponClassname = "weapon_displacer"; break;
+				default: //Nero, Custom weapon support
+				{
+					if( g_bEnableCustomWeaponsForMK2Sentry )
+						CheckForCustomWeaponName( m_iWeapon, weaponClassname );
+				}
 			}
 			
 			CBaseEntity@ pWeapon = g_EntityFuncs.Create( weaponClassname, pPlayer.pev.origin, g_vecZero, true );
@@ -512,8 +523,12 @@ class CSentryMK2 : ScriptBaseMonsterEntity
 						case WEAPON_SHOCKRIFLE: newWeapon = W_SHOCKRIFLE; break;
 						case WEAPON_DISPLACER: newWeapon = W_DISPLACER; break;
 					}
-					
-					// not supported, any custom weapon will also fall here
+
+					//Nero, Custom weapon support
+					if( g_bEnableCustomWeaponsForMK2Sentry and newWeapon == W_NONE )
+						newWeapon = CheckForCustomWeapon( self, pWeapon, pev.origin, m_vecCurAngles );
+
+					// not supported
 					if ( newWeapon == W_NONE )
 					{
 						g_PlayerFuncs.ClientPrint( pPlayer, HUD_PRINTCENTER, "Deploy sentry N/A: Unsupported weapon\n" );
@@ -521,7 +536,15 @@ class CSentryMK2 : ScriptBaseMonsterEntity
 					}
 					
 					// set new sentry weapon
-					self.pev.body = m_iWeapon = newWeapon;
+					//Nero Custom weapon support
+					if( g_bEnableCustomWeaponsForMK2Sentry and newWeapon > W_MINIGUN )
+					{
+						self.pev.body = W_NONE-1; //empty base
+						m_iWeapon = newWeapon;
+					}
+					else
+						self.pev.body = m_iWeapon = newWeapon;
+
 					if ( m_iWeapon == W_M16 )
 						m_iClip = 3; // starting clip
 					
@@ -625,7 +648,7 @@ class CSentryMK2 : ScriptBaseMonsterEntity
 			self.pev.framerate = 0;
 			SetThink( ThinkFunction( SearchThink ) );
 			
-			if ( self.pev.SpawnFlagBitSet( SF_SENTRY_CANDISARM ) )
+			//if ( self.pev.SpawnFlagBitSet( SF_SENTRY_CANDISARM ) )
 				SetUse( UseFunction( OpenDisarm ) );
 		}
 	}
@@ -1529,6 +1552,13 @@ class CSentryMK2 : ScriptBaseMonsterEntity
 				self.pev.nextthink = g_Engine.time + 0.01;
 				break;
 			}
+
+			//Nero, Custom weapon support
+			default: 
+			{
+				if( g_bEnableCustomWeaponsForMK2Sentry )
+					CustomWeaponFire( m_iWeapon, self, vecSrc, vecDirToEnemy, m_flNextFire );
+			}
 		}
 		
 		// only do muzzle for these weapons
@@ -2014,7 +2044,7 @@ class CSentryMK2 : ScriptBaseMonsterEntity
 		self.pev.fuser1 = 0;
 		
 		g_SoundSystem.EmitSoundDyn( self.edict(), CHAN_STATIC, "weapons/bgrapple_release.wav", 0.98, ATTN_NORM, 0, 125 );
-		g_SoundSystem.EmitSoundDyn( self.edict(), CHAN_STATIC, "weapons/bgrapple_pull.wav", 0.0, ATTN_NONE, SND_STOP, 100 );
+		g_SoundSystem.EmitSoundDyn( self.edict(), CHAN_STATIC, "weapons/bgrapple_pull.wav", 0.0, ATTN_NORM, SND_STOP, 100 );
 		
 		GrappleDestroy();
 		
@@ -2399,9 +2429,15 @@ class CSentryTongue : ScriptBaseEntity
 
 void RegisterSentryMK2()
 {
-	g_CustomEntityFuncs.RegisterCustomEntity( "CSentryMK2", "monster_sentry_mk2" );
-	g_CustomEntityFuncs.RegisterCustomEntity( "CSentryTongue", "sentry_tongue" );
+	g_CustomEntityFuncs.RegisterCustomEntity( "SentryMK2::CSentryMK2", "monster_sentry_mk2" );
+	g_CustomEntityFuncs.RegisterCustomEntity( "SentryMK2::CSentryTongue", "sentry_tongue" );
 	g_Game.PrecacheOther( "monster_sentry_mk2" );
+
+	//Nero, Custom weapon support
+	if( g_bEnableCustomWeaponsForMK2Sentry )
+		RegisterCustomWeapons();
 }
 
-void MapInit() { RegisterSentryMK2(); }
+//void MapInit() { RegisterSentryMK2(); }
+
+} //namespace SentryMK2 END
