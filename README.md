@@ -10,9 +10,9 @@ Of course, if you want, you can skip the "1" and just spawn an enemy sentry `cre
 
 A basic FGD file is also included in this reposity to add enemy sentries to your maps with ease.
 
-## Known caveats
+## Custom weapons
 
-The sentry can only accept vanilla Sven Co-op weapons. Any custom weapon is unsupported and will be refused by the sentry.
+The sentry can easily be modified to accept custom weapons!
 
 ## Thanks
 
