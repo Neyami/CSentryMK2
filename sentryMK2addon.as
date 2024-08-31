@@ -17,9 +17,16 @@ enum e_customweapons
 	W_PLASMAGUN
 };
 
-void CustomWeaponFire( int iWeapon, CBaseEntity@ cbeSentry, Vector vecSrc, Vector vecDirToEnemy, float &out flNextFire )
+void CustomWeaponFire( int iWeapon, EHandle &in hSentry, Vector vecSrc, Vector vecDirToEnemy, float &out flNextFire )
 {
-	CSentryMK2@ pSentry = cast<CSentryMK2@>(CastToScriptClass(cbeSentry));
+	if( !hSentry.IsValid() )
+	{
+		flNextFire = g_Engine.time + 0.5;
+
+		return;
+	}
+
+	CSentryMK2@ pSentry = cast<CSentryMK2@>(CastToScriptClass(hSentry.GetEntity()));
 
 	switch( iWeapon )
 	{

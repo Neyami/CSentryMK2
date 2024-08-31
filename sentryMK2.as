@@ -1557,7 +1557,7 @@ class CSentryMK2 : ScriptBaseMonsterEntity
 			default: 
 			{
 				if( g_bEnableCustomWeaponsForMK2Sentry )
-					CustomWeaponFire( m_iWeapon, self, vecSrc, vecDirToEnemy, m_flNextFire );
+					CustomWeaponFire( m_iWeapon, EHandle(self), vecSrc, vecDirToEnemy, m_flNextFire );
 			}
 		}
 		
